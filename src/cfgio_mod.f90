@@ -7,7 +7,7 @@ module cfgio_mod
     implicit none
     private
     public:: cfg_t, parse_cfg !! main
-    public:: dict,cfg_sect
+    public:: dict_t,cfg_sect_t
 
     integer,parameter:: MXNPAR=100
     integer,parameter:: MXNSTR=256
@@ -16,21 +16,21 @@ module cfgio_mod
     integer, parameter:: dp=kind(0.d0)
     character(len=8),parameter:: defaults="DEFAULTS"
 
-    type dict
+    type dict_t
         character(len=:),allocatable:: key,val
     end type
 
-    type cfg_sect
+    type cfg_sect_t
         integer:: npar=0
         character(len=:),allocatable:: section
-        type(dict):: p(MXNPAR)
+        type(dict_t):: p(MXNPAR)
         contains
             procedure:: has_key => sect_has_key
     end type
 
     type cfg_t
         integer:: nsect=0
-        type(cfg_sect):: s(0:MXNPAR)
+        type(cfg_sect_t):: s(0:MXNPAR)
         contains
             generic,public:: print => print_cfg,write_cfg_file
             generic,public:: write => print_cfg,write_cfg_file
@@ -141,7 +141,7 @@ contains
     end function
 
     integer function find_ikey(cfgs,key,found) result(ikey)
-    class(cfg_sect),intent(in):: cfgs
+    class(cfg_sect_t),intent(in):: cfgs
     character(len=*),intent(in):: key
     logical,intent(out):: found
     found=.false.
@@ -155,7 +155,7 @@ contains
     end function
 
     logical function sect_has_key(cfgs,key) result(found)
-    class(cfg_sect),intent(in):: cfgs
+    class(cfg_sect_t),intent(in):: cfgs
     character(len=*),intent(in):: key
     integer ikey
     found=.false.
