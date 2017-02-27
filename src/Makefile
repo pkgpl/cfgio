@@ -1,5 +1,5 @@
 FC=ifort
-FFLAG=-O2 -assume byterecl
+FFLAG=-O2
 INC=../include
 LIB=../lib
 

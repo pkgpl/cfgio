@@ -1,6 +1,17 @@
 # CFGIO
 Fortran config file parser
 
+## Install
+```sh
+make
+make install
+```
+
+## Compile
+```
+your_fortran_compiler -o main.e main.f90 -I/path/to/include -L/path/to/lib -lcfgio
+```
+
 ## Config (ini) file
 A [configuration file](https://en.wikipedia.org/wiki/Configuration_file) contains sections, keywords, and values as follows.
 
@@ -35,9 +46,9 @@ my file = $(Section 1:path)/file.txt
 Let's parse it using Fortran.
 
 
-## cfgio module
+## cfgio_mod module
 
-### cfg type
+### cfg_t type
 A derived data type `cfg_t` is required to parse a config file.
 
 ```fortran
@@ -109,24 +120,25 @@ call cfg%write("output.cfg")
 ### API reference
 ```fortran
 type(cfg_t):: cfg
+integer:: value
 ! Supported types of input/output values:
 !   integer, logical, character(len=*),
 !   real(kind=4), real(kind=8),
 !   complex(kind=4), complex(kind=8),
 !   allocatable arrays of above types
 
-! INPUT
-! parse config file
+!!! INPUT
+!! parse config file
 cfg=parse_cfg("config_file_name")
 
-! getter subroutines
+!! getter subroutines
 ! The program stops if it cannot find the "key" in both "section title" and "DEFAULTS" sections.
 call cfg%get("section title","key",value)
 
 ! (optional integer output) npar: number of parameters (array size)
 call cfg%get("section title","key",value,npar)
 
-! getter functions
+!! getter functions
 val = cfg%gets("section title","key") ! character
 val = cfg%getb("section title","key") ! logical
 val = cfg%geti("section title","key") ! integer
@@ -135,18 +147,19 @@ val = cfg%getd("section title","key") ! real(kind=8)
 val = cfg%getc("section title","key") ! complex(kind=4)
 val = cfg%getz("section title","key") ! complex(kind=8)
 
-if( cfg%has_section("section title") )
+!! Does the file have designated section/keyword?
+if( .not. cfg%has_section("section title") ) stop
 
-if( cfg%has_key("section title","key") )
+if( .not. cfg%has_key("section title","key") ) stop
 
 ! search_defaults=.false. : Do not try to find the key in the DEFAULTS section
-if( cfg%has_key("section title","key",search_defaults=.false.) )
+if( .not. cfg%has_key("section title","key",search_defaults=.false.) ) stop
 
 
-! OUTPUT
+!!! OUTPUT
 call cfg%set("section title","key",value)
 
-! generate a config file (we can use 'print' instead of 'write')
+!! generate a config file (we can use 'print' instead of 'write')
 call cfg%write("output_file_name.cfg")
 
 ! to standard output
