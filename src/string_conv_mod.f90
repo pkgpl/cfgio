@@ -58,6 +58,10 @@ contains
     pure function quote(str) result(v)
     character(len=*),intent(in):: str
     character(len=:),allocatable:: v
+    if(len_trim(str)==0) then
+        v='""'
+        return
+    endif
     if(str(1:1)=='"'.or.str(1:1)=="'") then
         v=str
     else
