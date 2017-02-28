@@ -113,6 +113,8 @@ contains
         v=.true.
     case("ON","On","on")
         v=.true.
+    case(".TRUE.",".true.")
+        v=.true.
     case default
         v=.false.
     end select

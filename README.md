@@ -91,7 +91,7 @@ call cfg%get("Section 2","use_abs",flag2) !! .false.
 call cfg%get("Section 2","my file",filename) !! ../text/file.txt (interpolated)
 ```
 
-The code may require additional explanation regarding "DEFAULTS" section, array input, and string interpolation.
+The code may require additional explanations regarding "DEFAULTS" section, array input, string interpolation, and boolean values.
 
 #### DEFAULTS section
 If a keyword is missing in the designated section, `cfgio` tries to search the keyword from the 'DEFAULTS' section (Idea from [Python configparser](https://docs.python.org/3/library/configparser.html)). For example, `flag1` value from the above code is from the 'DEFAULTS' section because "Section 1" does not contain "use_abs" keyword.
@@ -101,6 +101,15 @@ We can use allocatable arrays to obtain a list of values. `cfg.get` subroutine a
 
 #### Interpolation
 `$(key1)` in a value is replaced with the value of `key1` in the current section. We can specify the section name containing the keyword as `$(Section 1:key1)` as shown in the example (`filename`). "DEFAULTS" section for a missing keyword is also available in the interpolation process.
+
+#### Boolean
+Following strings are rendered as `.true.`. Otherwize, `.false.`
+
+- TRUE, True, true, T, t
+- YES, Yes, yes, Y, y
+- ON, On, on
+- .TRUE., .true.
+
 
 ### Output
 
