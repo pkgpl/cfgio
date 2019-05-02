@@ -40,7 +40,7 @@ path = ../text
 [Section 2]
 use_abs = no
 ; comment 2
-my file = $(Section 1:path)/file.txt
+my file = ${Section 1:path}/file.txt
 ```
 
 Let's parse it using Fortran.
@@ -100,7 +100,7 @@ If a keyword is missing in the designated section, `cfgio` tries to search the k
 We can use allocatable arrays to obtain a list of values. `cfg.get` subroutine allocates the memory. Optionally, the subroutine returns number of parameters in a list as shown in the example using `npar`. 
 
 #### Interpolation
-`$(key1)` in a value is replaced with the value of `key1` in the current section. We can specify the section name containing the keyword as `$(Section 1:key1)` as shown in the example (`filename`). "DEFAULTS" section for a missing keyword is also available in the interpolation process.
+`${key1}` in a value is replaced with the value of `key1` in the current section. We can specify the section name containing the keyword as `${Section 1:key1}` as shown in the example (`filename`). "DEFAULTS" section for a missing keyword is also available in the interpolation process.
 
 #### Boolean
 Following strings are rendered as `.true.`. Otherwize, `.false.`
