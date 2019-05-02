@@ -31,6 +31,7 @@ module cfgio_mod
     type cfg_t
         integer:: nsect=0
         type(cfg_sect_t):: s(0:MXNPAR)
+        integer:: isect_search_start=1
         contains
             generic,public:: print => print_cfg,write_cfg_file
             generic,public:: write => print_cfg,write_cfg_file
@@ -118,7 +119,7 @@ contains
     character(len=*),intent(in):: section
     logical,intent(out):: found
     found=.false.
-    do isect=0,cfg%nsect
+    do isect=cfg%isect_search_start,cfg%nsect
         if(trim(adjustl(cfg%s(isect)%section)).eq.section) then
             found=.true.
             return
@@ -132,7 +133,7 @@ contains
     character(len=*),intent(in):: section
     integer isect
     found=.false.
-    do isect=0,cfg%nsect
+    do isect=cfg%isect_search_start,cfg%nsect
         if(trim(adjustl(cfg%s(isect)%section)).eq.section) then
             found=.true.
             return
@@ -721,7 +722,10 @@ contains
     integer:: isect,ipar
     isect=cfg%nsect
     ! parameters without section titles go to the defaults section
-    if(isect==0) cfg%s(isect)%section=defaults
+    if(isect==0) then
+        cfg%s(isect)%section=defaults
+        cfg%isect_search_start=0
+    endif
     cfg%s(isect)%npar=cfg%s(cfg%nsect)%npar+1
     ipar=cfg%s(isect)%npar
     cfg%s(isect)%p(ipar)%key=key
