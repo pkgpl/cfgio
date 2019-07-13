@@ -23,31 +23,31 @@
         integer i,npar
         cfg=parse_cfg("test.cfg")
         print*,'read i'
-        call cfg.get("DEFAULTS","n1",n1)
-        call cfg.get("DEFAULTS","n1a",n1a,npar)
+        call cfg%get("DEFAULTS","n1",n1)
+        call cfg%get("DEFAULTS","n1a",n1a,npar)
         print*,'npar=',npar
         print*,'read f'
-        call cfg.get("sec 01",'o1',o1)
-        call cfg.get("sec 01",'o1a',o1a,npar)
+        call cfg%get("sec 01",'o1',o1)
+        call cfg%get("sec 01",'o1a',o1a,npar)
         print*,'npar=',npar
-        call cfg.get("sec 01",'d1',d1)
-        call cfg.get("sec 01",'d1a',d1a,npar)
+        call cfg%get("sec 01",'d1',d1)
+        call cfg%get("sec 01",'d1a',d1a,npar)
         print*,'npar=',npar
         print*,'read s'
-        call cfg.get("sec 01",'label2',label2)
-        call cfg.get("sec 01",'label2a',label2a,npar)
+        call cfg%get("sec 01",'label2',label2)
+        call cfg%get("sec 01",'label2a',label2a,npar)
         print*,'npar=',npar
         print*,'read b'
-        call cfg.get("sec 02",'use swd',use_swd)
-        call cfg.get("sec 02",'la',la,npar)
+        call cfg%get("sec 02",'use swd',use_swd)
+        call cfg%get("sec 02",'la',la,npar)
         print*,'npar=',npar
         print*,'read c'
-        call cfg.get("sec 03",'c1',c1)
-        call cfg.get("sec 03",'c1a',c1a,npar)
+        call cfg%get("sec 03",'c1',c1)
+        call cfg%get("sec 03",'c1a',c1a,npar)
         print*,'npar=',npar
         print*,'read z'
-        call cfg.get("sec 03",'c2',c2)
-        call cfg.get("sec 03",'c2a',c2a,npar)
+        call cfg%get("sec 03",'c2',c2)
+        call cfg%get("sec 03",'c2a',c2a,npar)
         print*,'npar=',npar
         print*,'read end'
 
@@ -67,7 +67,7 @@
         print*,'c1a',c1a
         print*,'c2',c2
         print*,'c2a',c2a
-        call cfg.write()
+        call cfg%write()
 
         end
 
