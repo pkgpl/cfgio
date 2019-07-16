@@ -26,6 +26,7 @@
         print*,'ls2=',ls
 
         call cfg%write()
+        call cfg%finalize()
 
         end
 
