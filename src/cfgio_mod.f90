@@ -275,6 +275,7 @@ contains
     do i=1,cfg%nsect()
         call cfg%s(i)%finalize()
     enddo
+    deallocate(cfg%s)
     end subroutine
 
 
