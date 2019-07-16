@@ -38,6 +38,7 @@
 
         print*,'write test.cfg'
         call cfg%write('test.cfg')
+        call cfg%finalize()
 
         end
 

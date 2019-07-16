@@ -70,6 +70,7 @@
         print*,'c2',c2
         print*,'c2a',c2a
         call cfg%write()
+        call cfg%finalize()
 
         end
 
