@@ -2,7 +2,7 @@
 ! Author  : wansooha@gmail.com
 ! Date    :
 
-        program test_cfg_write
+        program test_cfg_read
         use cfgio_mod
         implicit none
         type(cfg_t):: cfg
@@ -21,7 +21,9 @@
         complex(kind=8):: c2
         complex(kind=8),allocatable:: c2a(:)
         integer i,npar
+        print*,'parse cfg'
         cfg=parse_cfg("test.cfg")
+        print*,'n sect=',cfg%nsect()
         print*,'read i'
         call cfg%get("DEFAULTS","n1",n1)
         call cfg%get("DEFAULTS","n1a",n1a,npar)

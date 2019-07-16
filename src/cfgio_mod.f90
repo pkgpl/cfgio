@@ -8,6 +8,7 @@ module cfgio_mod
     private
     public:: cfg_t, parse_cfg !! main
     public:: dict_t,cfg_sect_t
+    public:: cfg_init
 
     integer,parameter:: MXNSTR=256
     integer,parameter:: STDIN=5,STDOUT=6,STDERR=0
@@ -25,12 +26,16 @@ module cfgio_mod
         contains
             procedure:: has_key => sect_has_key
             procedure:: npar => sect_npar
+            procedure:: add_par => sect_add_par
+            procedure:: finalize => sect_finalize
     end type
 
     type cfg_t
         type(cfg_sect_t),dimension(:),allocatable :: s
         contains
             procedure:: nsect => cfg_nsect
+            procedure:: add_sect
+            procedure:: finalize => cfg_finalize
 
             generic,public:: print => print_cfg,write_cfg_file
             generic,public:: write => print_cfg,write_cfg_file
@@ -187,21 +192,14 @@ contains
     enddo
     end function
 
-    logical function has_key(cfg,section,key,search_defaults) result(found)
+    logical function has_key(cfg,section,key) result(found)
     class(cfg_t),intent(in):: cfg
     character(len=*),intent(in):: section,key
-    logical,intent(in),optional:: search_defaults
-    logical:: try_defaults=.true.
     integer isect
-    if(present(search_defaults)) try_defaults=search_defaults
     isect=find_isect(cfg,section,found)
     if(found) then
         found=sect_has_key(cfg%s(isect),key)
-        if(found) return
-    endif
-    if(try_defaults) then ! try DEFAULTS section
-        isect=find_isect(cfg,defaults,found)
-        if(found) found=sect_has_key(cfg%s(isect),key)
+        return
     endif
     end function
 
@@ -216,6 +214,70 @@ contains
     if(.not.found) call errexit("Cannot find the key: "//key)
     end subroutine
 
+! init section
+    type(cfg_sect_t) function sect_init(title) result(new_s)
+    character(len=*),intent(in):: title
+    new_s%section=trim(title)
+    if(.not.allocated(new_s%p)) allocate(new_s%p(0))
+    end function
+
+    subroutine sect_add_par(sect,key,val)
+    class(cfg_sect_t),intent(inout):: sect
+    character(len=*),intent(in):: key,val
+    type(dict_t),allocatable:: tmp(:)
+    integer:: n
+    if(.not.allocated(sect%p)) allocate(sect%p(0))
+    !sect%p = [sect%p, dict_t(key,val)]
+    n=size(sect%p)
+    allocate(tmp(n))
+    tmp(:)=sect%p(:)
+    deallocate(sect%p)
+    allocate(sect%p(n+1))
+    sect%p(1:n)=tmp(:)
+    deallocate(tmp)
+    sect%p(n+1)=dict_t(key,val)
+    end subroutine
+
+    type(cfg_t) function cfg_init() result(cfg)
+    type(cfg_sect_t):: def_sect
+    allocate(cfg%s(0))
+    def_sect=sect_init(defaults)
+    call cfg%add_sect(def_sect)
+    end function
+
+
+    subroutine add_sect(cfg,new_s)
+    class(cfg_t),intent(inout):: cfg
+    type(cfg_sect_t),intent(in):: new_s
+    type(cfg_sect_t),allocatable:: tmp(:)
+    integer :: n
+    if(.not.allocated(cfg%s)) allocate(cfg%s(0))
+    !cfg%s = [cfg%s, new_s]
+    n = size(cfg%s)
+    allocate(tmp(n))
+    tmp(:)=cfg%s(:)
+    deallocate(cfg%s)
+    allocate(cfg%s(n+1))
+    cfg%s(1:n)=tmp(:)
+    deallocate(tmp)
+    cfg%s(n+1)=new_s
+    end subroutine
+
+! finalize
+    subroutine sect_finalize(sect)
+    class(cfg_sect_t),intent(inout):: sect
+    if(allocated(sect%p)) deallocate(sect%p)
+    end subroutine
+
+    subroutine cfg_finalize(cfg)
+    class(cfg_t),intent(inout):: cfg
+    integer:: i
+    do i=1,cfg%nsect()
+        call cfg%s(i)%finalize()
+    enddo
+    end subroutine
+
+
 ! setter
     subroutine cfg_sets(cfg,section,key,val)
     class(cfg_t),intent(inout):: cfg
@@ -224,20 +286,19 @@ contains
     integer isect,ikey
     logical found
     type(cfg_sect_t):: new_s
+    !print*,'cfg_sets:',trim(section),trim(key),trim(val)
     isect=find_isect(cfg,section,found)
     if(.not.found) then
-        new_s%section=trim(adjustl(section))
-        allocate(new_s%p(0))
-        if(.not.allocated(cfg%s)) allocate(cfg%s(0))
-        cfg%s = [cfg%s, new_s]
-        isect=cfg%nsect()
-    endif
-    ikey=find_ikey(cfg%s(isect),key,found)
-    if(.not.found) then
-        if(.not. allocated(cfg%s(isect)%p)) allocate(cfg%s(isect)%p(0))
-        cfg%s(isect)%p = [cfg%s(isect)%p, dict_t(key, val)]
+        new_s = sect_init(trim(adjustl(section)))
+        call new_s%add_par(key,val)
+        call cfg%add_sect(new_s)
     else
-        cfg%s(isect)%p(ikey)%val=val
+        ikey=find_ikey(cfg%s(isect),key,found)
+        if(.not.found) then
+            call cfg%s(isect)%add_par(key,val)
+        else
+            cfg%s(isect)%p(ikey)%val=val
+        endif
     endif
     end subroutine
     subroutine cfg_seti(cfg,section,key,val)
@@ -344,6 +405,9 @@ contains
     if(.not.found) then ! try DEFAULTS section
         isect=find_isect(cfg,defaults,found)
         if(.not.found) call errexit("Cannot find the section:"//section)
+        ikey=find_ikey(cfg%s(isect),key,found)
+        if(.not.found) call errexit("Cannot find the key:"//key)
+        val=cfg%s(isect)%p(ikey)%val
     endif
     ikey=find_ikey(cfg%s(isect),key,found)
     if(found) then
@@ -701,24 +765,27 @@ contains
     type(cfg_t):: cfg
     character(len=*),intent(in):: filename
     character(len=512):: text
-    integer:: iunit
+    integer:: iunit,isect=1
+    cfg = cfg_init()
     iunit=assign_unit()
     open(iunit,file=filename)
     do
         read(iunit,'(a)',end=999) text
         !print*,"read text:: ",trim(text)
-        call parse_text(cfg,trim(text))
+        call parse_text(cfg,trim(text),isect)
     enddo
 999 close(iunit)
     end function
 
-    subroutine parse_text(cfg,text)
+    subroutine parse_text(cfg,text,isect)
     class(cfg_t),intent(inout):: cfg
     character(len=*),intent(in):: text
+    integer,intent(inout):: isect
     character(len=MXNSTR):: key,val
-    integer:: id,istat
+    integer:: id
     character:: cmt1='#',cmt2=';',eq='=',str1
-    character(len=MXNSTR):: str
+    character(len=MXNSTR):: str,section
+    logical:: found
     type(cfg_sect_t):: new_s
     str=adjustl(text)
     str1=str(1:1)
@@ -728,11 +795,14 @@ contains
     if(str1=='[') then
         id=index(str,']')
         if(id==0) call errexit('Wrong section title')
-        new_s%section=trim(adjustl(str(2:id-1)))
-        allocate(new_s%p(0))
-        if(.not.allocated(cfg%s)) allocate(cfg%s(0))
-        cfg%s = [cfg%s, new_s]
-        !print*,"Section::",cfg%s(cfg%nsect())%section
+        section=trim(adjustl(str(2:id-1)))
+        if(cfg%has_section(trim(section))) then
+            isect = find_isect(cfg,trim(section),found)
+        else
+            new_s = sect_init(trim(section))
+            call cfg%add_sect(new_s)
+            isect = cfg%nsect()
+        endif
         return
     endif
     ! parameter
@@ -740,26 +810,8 @@ contains
     if(id==0) return
     call split_kv(str,key,val)
     !val=unquote(val)
-    !print*,"Par::",key,'=',trim(val)
-    call addpar(cfg,key,val)
-    end subroutine
-
-    subroutine addpar(cfg,key,val)
-    class(cfg_t),intent(inout):: cfg
-    character(len=*),intent(in):: key,val
-    integer:: isect
-    type(cfg_sect_t):: new_s
-    isect=cfg%nsect()
-    ! parameters without section titles go to the defaults section
-    if(isect==0) then
-        new_s%section=defaults
-        allocate(new_s%p(1))
-        new_s%p(1)=dict_t(key, val)
-        cfg%s = [new_s]
-    else
-        if(.not. allocated(cfg%s(isect)%p)) allocate(cfg%s(isect)%p(0))
-        cfg%s(isect)%p = [cfg%s(isect)%p, dict_t(key, val)]
-    endif
+    call cfg%s(isect)%add_par(key,val)
+    !print*,'ADD:',trim(cfg%s(isect)%section)//':'//trim(key)//'='//trim(val)
     end subroutine
 
 ! report
