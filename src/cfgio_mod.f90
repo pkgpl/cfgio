@@ -510,7 +510,7 @@ contains
     subroutine cfg_get_s(cfg,section,key,val)
     class(cfg_t),intent(in):: cfg
     character(len=*),intent(in):: section,key
-    character(len=*),intent(out):: val
+    character(len=:),intent(out):: val
     val=cfg%gets(section,key)
     end subroutine
     subroutine cfg_get_i(cfg,section,key,val)
