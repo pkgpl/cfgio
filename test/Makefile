@@ -5,7 +5,7 @@ INC= ../include
 LIB= ../lib
 
 
-all: test_write.e test_read.e test_intpl.e
+all: test_write.e test_read.e test_intpl.e test_arr.e
 
 .SUFFIXES: .e .o .f90
 %.e: %.o

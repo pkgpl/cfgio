@@ -209,9 +209,20 @@ contains
     integer,intent(out):: isect,ikey
     logical:: found
     isect=find_isect(cfg,section,found)
-    if(.not.found) call errexit("Cannot find the section: "//section)
-    ikey=find_ikey(cfg%s(isect),key,found)
-    if(.not.found) call errexit("Cannot find the key: "//key)
+    if(.not.found) then ! section not exists: try DEFAULTS section
+        isect=find_isect(cfg,defaults,found)
+        if(.not.found) call errexit("Cannot find the section: "//section)
+        ikey=find_ikey(cfg%s(isect),key,found)
+        if(.not.found) call errexit("Cannot find the key:"//key)
+    else
+        ikey=find_ikey(cfg%s(isect),key,found)
+        if(.not.found) then ! section exists, key not exists: try DEFAULTS section
+            isect=find_isect(cfg,defaults,found)
+            if(.not.found) call errexit("Cannot find the section: "//section)
+            ikey=find_ikey(cfg%s(isect),key,found)
+            if(.not.found) call errexit("Cannot find the key:"//key)
+        endif
+    endif
     end subroutine
 
 ! init section
@@ -402,24 +413,8 @@ contains
     character(len=:),allocatable:: val
     integer isect,ikey
     logical found
-    isect=find_isect(cfg,section,found)
-    if(.not.found) then ! try DEFAULTS section
-        isect=find_isect(cfg,defaults,found)
-        if(.not.found) call errexit("Cannot find the section:"//section)
-        ikey=find_ikey(cfg%s(isect),key,found)
-        if(.not.found) call errexit("Cannot find the key:"//key)
-        val=cfg%s(isect)%p(ikey)%val
-    endif
-    ikey=find_ikey(cfg%s(isect),key,found)
-    if(found) then
-        val=cfg%s(isect)%p(ikey)%val
-    else ! try DEFAULTS section
-        isect=find_isect(cfg,defaults,found)
-        if(.not.found) call errexit("Cannot find the key:"//key)
-        ikey=find_ikey(cfg%s(isect),key,found)
-        if(.not.found) call errexit("Cannot find the key:"//key)
-        val=cfg%s(isect)%p(ikey)%val
-    endif
+    call find_sect_key(cfg,section,key,isect,ikey)
+    val=cfg%s(isect)%p(ikey)%val
     val=unquote(val)
     end function
 
