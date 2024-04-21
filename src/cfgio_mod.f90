@@ -415,7 +415,7 @@ contains
     logical found
     call find_sect_key(cfg,section,key,isect,ikey)
     val=cfg%s(isect)%p(ikey)%val
-    val=unquote(val)
+    read (val, *) val
     end function
 
     function interpolate_str(cfg,section,str) result(val)
