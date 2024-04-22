@@ -3,7 +3,7 @@
 ! Date    :
 
 module cfgio_mod
-    use string_conv_mod, only: from_string,tolist,unquote,list_size,list_size_cmplx,list_size_str
+    use string_conv_mod, only: from_string,tolist,strip,unquote,list_size,list_size_cmplx,list_size_str
     implicit none
     private
     public:: cfg_t, parse_cfg !! main
@@ -415,8 +415,23 @@ contains
     logical found
     call find_sect_key(cfg,section,key,isect,ikey)
     val=cfg%s(isect)%p(ikey)%val
-    read (val, *) val
+    val = unquote(strip(remove_comment(val)))
     end function
+
+    function remove_comment(istr) result(ostr)
+      implicit none
+      character(len=*):: istr !<
+      ! character(len=len(istr)):: ostr !<
+      character(len=:), allocatable :: ostr !<
+      character(len=*), parameter :: com = "#;"
+      integer :: id
+      id = scan(istr, com)
+      if (id /= 0) then
+        ostr = istr(1:id - 1)
+      else
+        ostr = istr
+      end if
+    end function remove_comment
 
     function interpolate_str(cfg,section,str) result(val)
     ! interpolation ${section:key}
