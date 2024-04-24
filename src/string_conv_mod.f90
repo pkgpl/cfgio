@@ -8,6 +8,7 @@ module string_conv_mod
     integer,parameter:: MXNSTR=256
     integer, parameter:: sp=kind(0.0)
     integer, parameter:: dp=kind(0.d0)
+    character(*), parameter :: blanks = ' '//achar(9) ! blanks and tabs
 
     ! subroutines
     interface from_string
@@ -50,10 +51,35 @@ module string_conv_mod
     public:: from_string,to_string
     public:: tostr,tolist
     public:: list_size,list_size_cmplx,list_size_str
-    public:: quote,unquote
+    public:: quote,unquote,strip
     public:: s2i,s2f,s2d,s2c,s2z,s2b
 
 contains
+
+    !> This function returns a copy of the string with leading chars removed
+    !!
+    !! If chars is not present all blank: spaces (achar(32)) and tabs (achar(9))
+    !! are removed.
+    !! @note that when used with no `chars` argument differs from intrinsic `trim`
+    !! in that it will also strip "tab" characters
+    pure function strip(S, chars) result(Sout)
+      implicit none
+      character(len=*), intent(IN) :: S               !< Original string
+      character(len=*), optional, intent(IN) :: chars !< chars to remove from S
+      character(len=:), allocatable :: Sout !< String with chars removed
+      integer :: ni, nf
+      character(len=:), allocatable :: ch_
+  
+      ch_ = blanks; IF (present(chars)) ch_ = chars
+  
+      ni = verify(S, ch_)
+      if (ni == 0) ni = 1
+  
+      nf = verify(S, ch_, back=.True.)
+      if (nf == 0) nf = len(S)
+  
+      Sout = S(ni:nf)
+    end function strip
 
     pure function quote(str) result(v)
     character(len=*),intent(in):: str
