@@ -412,7 +412,6 @@ contains
     character(len=*),intent(in):: section,key
     character(len=:),allocatable:: val
     integer isect,ikey
-    logical found
     call find_sect_key(cfg,section,key,isect,ikey)
     val=cfg%s(isect)%p(ikey)%val
     val = unquote(strip(remove_comment(val)))
@@ -794,7 +793,8 @@ contains
     integer,intent(inout):: isect
     character(len=MXNSTR):: key,val
     integer:: id
-    character:: cmt1='#',cmt2=';',eq='=',str1
+    character, parameter :: cmt1='#',cmt2=';',eq='='
+    character :: str1
     character(len=MXNSTR):: str,section
     logical:: found
     type(cfg_sect_t):: new_s

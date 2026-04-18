@@ -358,7 +358,7 @@ contains
 
     integer function list_size(text) result(npar)
     character(len=*),intent(in):: text
-    character:: sep=','
+    character,parameter :: sep=','
     integer i
     npar=1
     do i=1,len(text)
@@ -369,7 +369,7 @@ contains
     end function
     integer function list_size_str(text) result(npar)
     character(len=*),intent(in):: text
-    character:: sep=','
+    character, parameter :: sep=','
     logical:: in_sq=.false.,in_bq=.false.
     integer i
     npar=1
@@ -383,7 +383,7 @@ contains
     end function
     integer function list_size_cmplx(text) result(npar)
     character(len=*),intent(in):: text
-    character:: sep=','
+    character, parameter :: sep=','
     integer i
     logical:: inside=.false.
     npar=1
