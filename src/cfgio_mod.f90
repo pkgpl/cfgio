@@ -779,6 +779,7 @@ contains
     integer:: iunit,isect=1
     cfg = cfg_init()
     iunit=assign_unit()
+    if(iunit==-1) call errexit("parse_cfg: negative unit number")
     open(iunit,file=filename)
     do
         read(iunit,'(a)',end=999) text
@@ -856,6 +857,7 @@ contains
     character(len=*),intent(in):: filename
     integer un
     un=assign_unit()
+    if(un==-1) call errexit("write_cfg_file: negative unit number")
     open(un,file=filename)
     call print_cfg(cfg,un)
     close(un)
@@ -865,19 +867,19 @@ contains
     subroutine errexit(msg)
     character(len=*),intent(in) :: msg
     write(stderr,*) trim(msg)
-    stop
+    stop 1
     end subroutine
 
     function assign_unit() result(un)
     logical :: oflag
-    integer :: un,i
-    do i=99,10,-1
-        inquire(unit=i,opened=oflag)
-        if(.not.oflag) then
-            un=i
-            return
-        endif
+    integer, parameter :: nmax = 999
+    integer, parameter :: nmin = 10 ! lower numbers may be reserved
+    integer :: un
+    do un=nmax,nmin,-1
+        inquire(unit=un,opened=oflag)
+        if(.not.oflag) return
     enddo
+    un = -1
     end function
 
 ! parameter key=val parse
