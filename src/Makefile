@@ -1,7 +1,7 @@
 # PRJ:=cfgio
 PRJ:= 
 FC=ifort
-FFLAG=-O2
+FFLAGS=-O2
 INC=../include
 
 # Added installation Path
@@ -21,7 +21,7 @@ $(TARGET): $(OBJECTS)
 
 .SUFFIXES: .o .f90
 %.o: %.f90
-	$(FC) $(FFLAG) -c $< -I$(INC)
+	$(FC) $(FFLAGS) -c $< -I$(INC)
 
 install: $(TARGET)
 	mkdir -p $(INSTALL_INCLUDE) $(INSTALL_LIB)
