@@ -12,7 +12,7 @@ all: test_write.e test_read.e test_intpl.e test_arr.e
 	$(FC) $(FFLAGS) -o $@ $^ -L$(LIB) -lcfgio
 
 %.o: %.f90
-	$(FC) $(FFLAG) -c $< -I$(INC)
+	$(FC) $(FFLAGS) -c $< -I$(INC)
 
 clean:
 	rm *.e
